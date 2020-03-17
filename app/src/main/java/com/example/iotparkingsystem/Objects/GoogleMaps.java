@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.iotparkingsystem.Fragments.FreeSpotFragment;
+import com.example.iotparkingsystem.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -20,6 +21,9 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.maps.android.data.kml.KmlLayer;
 
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class GoogleMaps implements OnMapReadyCallback {
@@ -30,6 +34,7 @@ public class GoogleMaps implements OnMapReadyCallback {
     private FragmentManager fragmentManager;
     private FreeSpotFragment freeSpotFragment;
     private Polygon polygon;
+    KmlLayer kmlLayer;
 
     private final LatLng mDefaultLocation = new LatLng(46.52,24.6);
     private static final int DEFAULT_ZOOM = 15;
@@ -53,6 +58,7 @@ public class GoogleMaps implements OnMapReadyCallback {
         Log.i("IoT","GoogleMaps: Map is ready!");
         this.mMap = googleMap;
         setCamera();
+        //setKmlMap();
         mMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
             @Override
             public void onPolygonClick(Polygon polygon) {
@@ -67,6 +73,17 @@ public class GoogleMaps implements OnMapReadyCallback {
 
     public void setCamera() {
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+    }
+
+    public void setKmlMap(){
+        try {
+            kmlLayer = new KmlLayer(mMap, R.raw.parkolo, view.getContext());
+            kmlLayer.addLayerToMap();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void createPolygon1(){
@@ -97,7 +114,8 @@ public class GoogleMaps implements OnMapReadyCallback {
                 .add(pos2)
                 .add(pos3)
                 .add(pos4)
-                .strokeWidth(2);
+                .strokeWidth(2)
+                .zIndex(10);
         if (spotStatus == true){
             polygonOptions.fillColor(Color.argb(50,51,255,51));
         }else{
