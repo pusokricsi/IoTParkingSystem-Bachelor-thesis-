@@ -1,19 +1,19 @@
 package com.example.iotparkingsystem.Fragments;
 
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.example.iotparkingsystem.Activitys.MainActivity;
 import com.example.iotparkingsystem.Objects.GoogleMaps;
@@ -43,12 +43,15 @@ public class MainFragment extends Fragment{
     private FragmentManager fragmentManager;
     private FreeSpotFragment freeSpotFragment;
     GoogleMaps googleMap;
+    private boolean mLocationPermissionGranted;
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
-
-
+    private Location mLastKnowLocation;
+    private static final String KEY_LOCATION = "location";
 
     public MainFragment() {
     }
+
 
     @Nullable
     @Override
@@ -56,10 +59,9 @@ public class MainFragment extends Fragment{
         this.view = inflater.inflate(R.layout.fragment_main,container,false);
         inicialize();
         main();
-
-
         return this.view;
     }
+
 
 
     private void inicialize(){
@@ -68,7 +70,6 @@ public class MainFragment extends Fragment{
         firebaseUser = firebaseAuth.getCurrentUser();
         SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager().findFragmentById(R.id.map);
         googleMap = new GoogleMaps(this.view,mapFragment);
-
     }
 
     private void main(){
@@ -78,7 +79,7 @@ public class MainFragment extends Fragment{
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                parkingSpotSet2(dataSnapshot);
+                //parkingSpotSet2(dataSnapshot);
             }
 
             @Override
@@ -115,7 +116,6 @@ public class MainFragment extends Fragment{
 
             }
         });
-
     }
 
     public void getClickedButton(View v){
@@ -208,6 +208,25 @@ public class MainFragment extends Fragment{
             Log.i("IoT","MainFragment: Position is not correct!");
         }else {
             googleMap.modifyPolygon(spotName,spotStatus);
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        mLocationPermissionGranted = false;
+        googleMap.setmLocationPermissionGranted(mLocationPermissionGranted);
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mLocationPermissionGranted = true;
+                    googleMap.setmLocationPermissionGranted(mLocationPermissionGranted);
+                }
+            }
         }
     }
 

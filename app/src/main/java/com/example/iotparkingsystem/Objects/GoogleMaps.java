@@ -1,30 +1,38 @@
 package com.example.iotparkingsystem.Objects;
 
+import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.iotparkingsystem.Fragments.FreeSpotFragment;
-import com.example.iotparkingsystem.R;
+import com.example.iotparkingsystem.Fragments.MainFragment;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.maps.android.data.kml.KmlLayer;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.Executor;
 
 public class GoogleMaps implements OnMapReadyCallback {
 
@@ -34,10 +42,15 @@ public class GoogleMaps implements OnMapReadyCallback {
     private FragmentManager fragmentManager;
     private FreeSpotFragment freeSpotFragment;
     private Polygon polygon;
-    KmlLayer kmlLayer;
+
 
     private final LatLng mDefaultLocation = new LatLng(46.52,24.6);
-    private static final int DEFAULT_ZOOM = 15;
+    private static final int DEFAULT_ZOOM = 50;
+
+
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private boolean mLocationPermissionGranted;
+    private Location mLastKnownLocation;
 
     ArrayList<Polygon> polygons = new ArrayList<>();
 
@@ -49,16 +62,34 @@ public class GoogleMaps implements OnMapReadyCallback {
         this.view = view;
         this.supportMapFragment = supportMapFragment;
         this.supportMapFragment.getMapAsync(this);
+        this.mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(view.getContext());
     }
 
+    public boolean ismLocationPermissionGranted() {
+        return mLocationPermissionGranted;
+    }
+
+    public void setmLocationPermissionGranted(boolean mLocationPermissionGranted) {
+        this.mLocationPermissionGranted = mLocationPermissionGranted;
+    }
+
+    public GoogleMap getmMap() {
+        return mMap;
+    }
+
+    public Location getmLastKnownLocation() {
+        return mLastKnownLocation;
+    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Toast.makeText(view.getContext(), "Map is Ready", Toast.LENGTH_SHORT).show();
         Log.i("IoT","GoogleMaps: Map is ready!");
         this.mMap = googleMap;
-        setCamera();
-        //setKmlMap();
+        //setCamera();
+        if (mLocationPermissionGranted){
+            mMap.setMyLocationEnabled(true);
+        }
         mMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
             @Override
             public void onPolygonClick(Polygon polygon) {
@@ -69,43 +100,17 @@ public class GoogleMaps implements OnMapReadyCallback {
                 freeSpotFragment.show(fragmentManager,"fragment_free_spot");
             }
         });
+        getLocationPermission();
+        getLocation();
+        addTestPolygon();
     }
 
     public void setCamera() {
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
     }
 
-    public void setKmlMap(){
-        try {
-            kmlLayer = new KmlLayer(mMap, R.raw.parkolo, view.getContext());
-            kmlLayer.addLayerToMap();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void createPolygon1(){
-        PolygonOptions polygonOptions = new PolygonOptions()
-                .add(new LatLng(46.5227157,24.5977417))
-                .add(new LatLng(46.5226912,24.5977525))
-                .add(new LatLng(46.5227032,24.5978186))
-                .add(new LatLng(46.5227272,24.5978082))
-                .fillColor(Color.RED);
-        Polygon polygon = mMap.addPolygon(polygonOptions);
-        polygon.setClickable(true);
-    }
-
-    public void createPolygon2(){
-        PolygonOptions polygonOptions = new PolygonOptions()
-                .add(new LatLng(46.5226912,24.5977525))
-                .add(new LatLng(46.522667,24.5977626))
-                .add(new LatLng(46.5226797,24.5978287))
-                .add(new LatLng(46.5227032,24.5978186))
-                .fillColor(Color.RED);
-        Polygon polygon = mMap.addPolygon(polygonOptions);
-        polygon.setClickable(true);
+    public void setCamera(LatLng latLng){
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
     }
 
     public void createPolygon(LatLng pos1,LatLng pos2, LatLng pos3, LatLng pos4,String spotName,Boolean spotStatus){
@@ -139,6 +144,110 @@ public class GoogleMaps implements OnMapReadyCallback {
             }
         }
     }
+
+    public void getLocationPermission() {
+        /*
+         * Request location permission, so that we can get the location of the
+         * device. The result of the permission request is handled by a callback,
+         * onRequestPermissionsResult.
+         */
+        if (ContextCompat.checkSelfPermission(this.view.getContext().getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+        } else {
+            ActivityCompat.requestPermissions((Activity) view.getContext(),
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
+
+
+    private void getDeviceLocation() {
+        /*
+         * Get the best and most recent location of the device, which may be null in rare
+         * cases when a location is not available.
+         */
+        try {
+            if (mLocationPermissionGranted) {
+
+                Task locationResult = mFusedLocationProviderClient.getLastLocation();
+                locationResult.addOnCompleteListener(new OnCompleteListener() {
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+                        if (task.isSuccessful()) {
+                            // Set the map's camera position to the current location of the device.
+                            mLastKnownLocation = (Location) task.getResult();
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                    new LatLng(46.52,24.6), DEFAULT_ZOOM));
+                            mMap.addMarker(new MarkerOptions().position(new LatLng(mLastKnownLocation.getLatitude(),mLastKnownLocation.getLongitude())));
+
+                        } else {
+                            Log.i("IoT", "Current location is null. Using defaults.");
+                            Log.e("IoT", "Exception: %s", task.getException());
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                        }
+                    }
+                });
+            }
+        } catch(SecurityException e)  {
+            Log.e("Exception: %s", e.getMessage());
+        }
+    }
+
+    public void getLocation(){
+        LocationRequest mLocationRequest = LocationRequest.create();
+        mLocationRequest.setInterval(60000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        LocationCallback mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    if (location != null) {
+                        mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),location.getLongitude())));
+                        Log.i("IoT",location.getLatitude()+" "+location.getLongitude());
+                    }
+                }
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(locationResult.getLastLocation().getLatitude(),locationResult.getLastLocation().getLongitude()), DEFAULT_ZOOM));
+            }
+        };
+        LocationServices.getFusedLocationProviderClient(this.view.getContext()).requestLocationUpdates(mLocationRequest, mLocationCallback, null);
+    }
+
+    public void addTestPolygon(){
+            PolygonOptions polygonOptions = new PolygonOptions()
+                    .add(new LatLng(47.1624555,23.0539033))
+                    .add(new LatLng(47.1624876,23.0539161))
+                    .add(new LatLng(47.1624978,23.0538538))
+                    .add(new LatLng(47.1624652,23.0538424))
+                    .strokeWidth(2)
+                    .zIndex(10);
+            polygonOptions.fillColor(Color.argb(50,255,51,51));
+            polygon = mMap.addPolygon(polygonOptions);
+            polygon.setClickable(true);
+            polygon.setTag("Test");
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
