@@ -6,49 +6,16 @@
     android:layout_height="match_parent"
     tools:context=".Fragments.MainFragment" >
 
-    <TextView
-        android:id="@+id/nameTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
-        android:text="TextView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/parkingSpot1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:tag="Spot1"
-        android:text="SPOT1"
-        android:onClick="getClickedButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/nameTextView" />
-
-    <Button
-        android:id="@+id/parkingSpot2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:tag="Spot2"
-        android:text="SPOT2"
-        android:onClick="getClickedButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/parkingSpot1"
-        app:layout_constraintTop_toBottomOf="@+id/nameTextView" />
-
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="359dp"
-        android:layout_height="431dp"
         class="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/parkingSpot2"
-        tools:context=".MainFragment"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"/>
+        app:layout_constraintTop_toTopOf="parent"
+        tools:context=".MainFragment" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

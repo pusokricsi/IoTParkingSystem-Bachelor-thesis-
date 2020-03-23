@@ -34,7 +34,6 @@ import com.google.firebase.database.ValueEventListener;
 public class MainFragment extends Fragment{
 
     private View view;
-    private TextView nameTextView;
     private Button parkingSpot;
     private FirebaseUser firebaseUser;
     private FirebaseAuth firebaseAuth;
@@ -64,8 +63,7 @@ public class MainFragment extends Fragment{
 
 
     private void inicialize(){
-        ((MainActivity) getActivity()).setActionBarTitle("Reservations");
-        nameTextView = view.findViewById(R.id.nameTextView);
+        ((MainActivity) getActivity()).setActionBarTitle(getResources().getString(R.string.AcctionBarTitle));
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
         SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager().findFragmentById(R.id.map);
@@ -118,7 +116,6 @@ public class MainFragment extends Fragment{
             }
         });
 
-        nameTextView.setText(firebaseUser.getEmail());
     }
 
     public void getClickedButton(View v){
@@ -139,18 +136,15 @@ public class MainFragment extends Fragment{
         for (DataSnapshot child:dataSnapshot.getChildren()){
             Log.i("IoT",child.getKey()+"  "+child.getValue());
             if (child.getKey().equals("spotName")){
-                parkingSpot = view.findViewWithTag(child.getValue());
                 spotName = String.valueOf(child.getValue());
-                Log.i("IoT","MainFragment: "+child.getValue()+" button has found by tag!");
+                Log.i("IoT","MainFragment: "+child.getValue()+" spot has found by tag!");
             }
             if (child.getKey().equals("spotStatus")){
                 Log.i("IoT","MainFragment: Color set in progress...");
                 if (child.getValue().equals("true")){
-                    parkingSpot.setBackgroundColor(getResources().getColor(R.color.green));
                     spotStatus = true;
                     Log.i("IoT","MainFragment: Color set!");
                 }else if (child.getValue().equals("false")){
-                    parkingSpot.setBackgroundColor(getResources().getColor(R.color.red));
                     Log.i("IoT","MainFragment: Color set!");
                     spotStatus = false;
                 }
@@ -195,18 +189,15 @@ public class MainFragment extends Fragment{
         for (DataSnapshot child:dataSnapshot.getChildren()){
             Log.i("IoT",child.getKey()+"  "+child.getValue());
             if (child.getKey().equals("spotName")){
-                parkingSpot = view.findViewWithTag(child.getValue());
                 spotName = String.valueOf(child.getValue());
-                Log.i("IoT","MainFragment: "+child.getValue()+" button has found by tag!");
+                Log.i("IoT","MainFragment: "+child.getValue()+" spot has found by tag!");
             }
             if (child.getKey().equals("spotStatus")){
                 Log.i("IoT","MainFragment: Color set in progress...");
                 if (child.getValue().equals("true")){
-                    parkingSpot.setBackgroundColor(getResources().getColor(R.color.green));
                     spotStatus = true;
                     Log.i("IoT","MainFragment: Color set!");
                 }else if (child.getValue().equals("false")){
-                    parkingSpot.setBackgroundColor(getResources().getColor(R.color.red));
                     Log.i("IoT","MainFragment: Color set!");
                     spotStatus = false;
                 }
