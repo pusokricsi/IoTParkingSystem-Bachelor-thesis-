@@ -22,6 +22,8 @@ import androidx.fragment.app.DialogFragment;
 
 import com.example.iotparkingsystem.Objects.DateCheck;
 import com.example.iotparkingsystem.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -202,11 +204,14 @@ public class FreeSpotFragment extends DialogFragment {
     }
 
     private void addNewReservation(){
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
         mDatabaseReference = FirebaseDatabase.getInstance().getReference("IoTSystem");
         mDatabaseReference = mDatabaseReference.child("Reservations").push();
         mDatabaseReference.child("spotId").setValue(spotId);
         mDatabaseReference.child("endTime").setValue(dateCheck.getcDate()+" "+dateCheck.getcEndDate());
         mDatabaseReference.child("startTime").setValue(dateCheck.getcDate()+" "+dateCheck.getcStartDate());
+        mDatabaseReference.child("userId").setValue(firebaseUser.getUid());
         getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
     }
 

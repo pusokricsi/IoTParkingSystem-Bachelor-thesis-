@@ -123,4 +123,33 @@ public class DateCheck {
         }
         return true;
     }
+
+    public boolean checkReservationDate(String startTime){
+        Calendar calendar = Calendar.getInstance();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+        if (minute+20>59){
+            minute = minute-40;
+        }else{
+            minute=minute+20;
+        }
+        String newTime = hour + "-" + minute;
+
+        Date date = null;
+        Date start = null;
+        Date tendate = null;
+        try {
+            date = dateTimeFormat.parse(this.pDate+" "+this.pTime);
+            start = dateTimeFormat.parse(startTime);
+            tendate = dateTimeFormat.parse(this.pDate+" "+newTime);
+            if (start.compareTo(date)>0 && start.compareTo(tendate)<=0){
+                Log.i("IoT","DateCheck: user have reservations in 20minutes interval");
+                return true;
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 }

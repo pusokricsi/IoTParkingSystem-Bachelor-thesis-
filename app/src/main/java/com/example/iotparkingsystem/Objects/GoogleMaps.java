@@ -25,13 +25,25 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.google.maps.android.PolyUtil;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 public class GoogleMaps implements OnMapReadyCallback {
@@ -42,10 +54,17 @@ public class GoogleMaps implements OnMapReadyCallback {
     private FragmentManager fragmentManager;
     private FreeSpotFragment freeSpotFragment;
     private Polygon polygon;
+    private DatabaseReference mDatabaseReference;
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseUser mFirebaseUser;
+    private DateCheck mDateCheck;
+    private boolean haveReservation;
+    private boolean isOnCheckpoint;
+
 
 
     private final LatLng mDefaultLocation = new LatLng(46.52,24.6);
-    private static final int DEFAULT_ZOOM = 50;
+    private static final int DEFAULT_ZOOM = 15;
 
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -63,6 +82,8 @@ public class GoogleMaps implements OnMapReadyCallback {
         this.supportMapFragment = supportMapFragment;
         this.supportMapFragment.getMapAsync(this);
         this.mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(view.getContext());
+        mDateCheck = new DateCheck();
+
     }
 
     public boolean ismLocationPermissionGranted() {
@@ -90,6 +111,8 @@ public class GoogleMaps implements OnMapReadyCallback {
         if (mLocationPermissionGranted){
             mMap.setMyLocationEnabled(true);
         }
+        //mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+
         mMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
             @Override
             public void onPolygonClick(Polygon polygon) {
@@ -102,7 +125,9 @@ public class GoogleMaps implements OnMapReadyCallback {
         });
         getLocationPermission();
         getLocation();
-        addTestPolygon();
+        addGatePolygon();
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(47.1624555,23.0539033), DEFAULT_ZOOM));
     }
 
     public void setCamera() {
@@ -163,77 +188,98 @@ public class GoogleMaps implements OnMapReadyCallback {
     }
 
 
-    private void getDeviceLocation() {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
-        try {
-            if (mLocationPermissionGranted) {
-
-                Task locationResult = mFusedLocationProviderClient.getLastLocation();
-                locationResult.addOnCompleteListener(new OnCompleteListener() {
-                    @Override
-                    public void onComplete(@NonNull Task task) {
-                        if (task.isSuccessful()) {
-                            // Set the map's camera position to the current location of the device.
-                            mLastKnownLocation = (Location) task.getResult();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(46.52,24.6), DEFAULT_ZOOM));
-                            mMap.addMarker(new MarkerOptions().position(new LatLng(mLastKnownLocation.getLatitude(),mLastKnownLocation.getLongitude())));
-
-                        } else {
-                            Log.i("IoT", "Current location is null. Using defaults.");
-                            Log.e("IoT", "Exception: %s", task.getException());
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
-                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                        }
-                    }
-                });
-            }
-        } catch(SecurityException e)  {
-            Log.e("Exception: %s", e.getMessage());
-        }
-    }
-
     public void getLocation(){
         LocationRequest mLocationRequest = LocationRequest.create();
-        mLocationRequest.setInterval(60000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setInterval(5000);
+        mLocationRequest.setFastestInterval(4000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        haveReservation = false;
+        isOnCheckpoint = false;
         LocationCallback mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 if (locationResult == null) {
                     return;
                 }
-                for (Location location : locationResult.getLocations()) {
-                    if (location != null) {
-                        mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),location.getLongitude())));
-                        Log.i("IoT",location.getLatitude()+" "+location.getLongitude());
-                    }
+                Location location = locationResult.getLastLocation();
+                Log.i("IoT","Device location: "+location.getLongitude()+"  "+location.getLatitude());
+                if (!isOnCheckpoint) {
+                    checkIsDeviceInGateZone(new LatLng(location.getLatitude(), location.getLongitude()));
                 }
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(locationResult.getLastLocation().getLatitude(),locationResult.getLastLocation().getLongitude()), DEFAULT_ZOOM));
+
             }
         };
         LocationServices.getFusedLocationProviderClient(this.view.getContext()).requestLocationUpdates(mLocationRequest, mLocationCallback, null);
     }
 
-    public void addTestPolygon(){
+    public void addGatePolygon(){
             PolygonOptions polygonOptions = new PolygonOptions()
-                    .add(new LatLng(47.1624555,23.0539033))
-                    .add(new LatLng(47.1624876,23.0539161))
-                    .add(new LatLng(47.1624978,23.0538538))
-                    .add(new LatLng(47.1624652,23.0538424))
+                    .add(new LatLng(47.163346, 23.052621))
+                    .add(new LatLng(47.162835, 23.055209))
+                    .add(new LatLng(47.161194, 23.054694))
+                    .add(new LatLng(47.162135, 23.050188))
                     .strokeWidth(2)
                     .zIndex(10);
             polygonOptions.fillColor(Color.argb(50,255,51,51));
             polygon = mMap.addPolygon(polygonOptions);
             polygon.setClickable(true);
             polygon.setTag("Test");
+
         }
 
+        private void checkIsDeviceInGateZone(LatLng location){
+            LatLngBounds latLngBounds = new LatLngBounds(new LatLng(47.161453, 23.052647),new LatLng(47.164013, 23.054696));
+            if (latLngBounds.contains(location)){
+                Log.i("IoT","GoogleMaps: Entered in the gate zone!");
+                Toast.makeText(this.view.getContext(),"You entered!",Toast.LENGTH_LONG).show();
+                isOnCheckpoint = true;
+                checkDateIsFree();
+            }
+        }
+
+    private void checkDateIsFree(){
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mFirebaseUser = mFirebaseAuth.getCurrentUser();
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference("IoTSystem");
+        Query query = mDatabaseReference.child("Reservations").orderByChild("userId");
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot idChild : dataSnapshot.getChildren()) {
+                    String startTime = null;
+                    String uId = null;
+                    for (DataSnapshot child : idChild.getChildren()) {
+                        if (child.getKey().equals("startTime")){
+                            startTime = child.getValue().toString();
+                        }
+                        if (child.getKey().equals("userId")){
+                            uId = child.getValue().toString();
+                        }
+                    }
+                    if (uId!=null && startTime!=null){
+                        mDateCheck.setPresentDate();
+                        if (mDateCheck.checkReservationDate(startTime)){
+                            Log.i("IoT","DateCheck: "+mFirebaseAuth.getUid()+" have reservations in 20minutes interval");
+                            haveReservation = true;
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+
+    private void alertDIalogShow(){
+        if (haveReservation){
+
+        }
+    }
 
 
 
