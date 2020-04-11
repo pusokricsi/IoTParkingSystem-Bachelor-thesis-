@@ -1,6 +1,7 @@
 package com.example.iotparkingsystem.Objects;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -82,6 +84,7 @@ public class GoogleMaps implements OnMapReadyCallback {
         this.supportMapFragment = supportMapFragment;
         this.supportMapFragment.getMapAsync(this);
         this.mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(view.getContext());
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference("IoTSystem");
         mDateCheck = new DateCheck();
 
     }
@@ -190,11 +193,10 @@ public class GoogleMaps implements OnMapReadyCallback {
 
     public void getLocation(){
         LocationRequest mLocationRequest = LocationRequest.create();
-        mLocationRequest.setInterval(5000);
-        mLocationRequest.setFastestInterval(4000);
+        mLocationRequest.setInterval(500);
+        mLocationRequest.setFastestInterval(400);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        haveReservation = false;
-        isOnCheckpoint = false;
+
         LocationCallback mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -202,10 +204,12 @@ public class GoogleMaps implements OnMapReadyCallback {
                     return;
                 }
                 Location location = locationResult.getLastLocation();
+                mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),location.getLongitude())));
                 Log.i("IoT","Device location: "+location.getLongitude()+"  "+location.getLatitude());
                 if (!isOnCheckpoint) {
                     checkIsDeviceInGateZone(new LatLng(location.getLatitude(), location.getLongitude()));
                 }
+
 
             }
         };
@@ -214,10 +218,10 @@ public class GoogleMaps implements OnMapReadyCallback {
 
     public void addGatePolygon(){
             PolygonOptions polygonOptions = new PolygonOptions()
-                    .add(new LatLng(47.163346, 23.052621))
-                    .add(new LatLng(47.162835, 23.055209))
-                    .add(new LatLng(47.161194, 23.054694))
-                    .add(new LatLng(47.162135, 23.050188))
+                    .add(new LatLng(47.162549, 23.053623))
+                    .add(new LatLng(47.162511, 23.053923))
+                    .add(new LatLng(47.162376, 23.053904))
+                    .add(new LatLng(47.162411, 23.053590))
                     .strokeWidth(2)
                     .zIndex(10);
             polygonOptions.fillColor(Color.argb(50,255,51,51));
@@ -228,7 +232,7 @@ public class GoogleMaps implements OnMapReadyCallback {
         }
 
         private void checkIsDeviceInGateZone(LatLng location){
-            LatLngBounds latLngBounds = new LatLngBounds(new LatLng(47.161453, 23.052647),new LatLng(47.164013, 23.054696));
+            LatLngBounds latLngBounds = new LatLngBounds(new LatLng(47.162376, 23.053904),new LatLng(47.162549, 23.053623));
             if (latLngBounds.contains(location)){
                 Log.i("IoT","GoogleMaps: Entered in the gate zone!");
                 Toast.makeText(this.view.getContext(),"You entered!",Toast.LENGTH_LONG).show();
@@ -240,7 +244,6 @@ public class GoogleMaps implements OnMapReadyCallback {
     private void checkDateIsFree(){
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
-        mDatabaseReference = FirebaseDatabase.getInstance().getReference("IoTSystem");
         Query query = mDatabaseReference.child("Reservations").orderByChild("userId");
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -264,6 +267,7 @@ public class GoogleMaps implements OnMapReadyCallback {
                         }
                     }
                 }
+                alertDIalogShow();
             }
 
             @Override
@@ -277,8 +281,44 @@ public class GoogleMaps implements OnMapReadyCallback {
 
     private void alertDIalogShow(){
         if (haveReservation){
-
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this.view.getContext());
+            builder.setMessage("You have reservation, do you want to open?")
+                    .setCancelable(false)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i("IoT","GoogleMaps/Gate Open");
+                            haveReservation = false;
+                            isOnCheckpoint = false;
+                            mDatabaseReference.child("Modules").child("9009").child("gateStatus").setValue(true);
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i("IoT","GoogleMaps/Gate Close");
+                            haveReservation = false;
+                            isOnCheckpoint = false;
+                        }
+                    });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+        }else{
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this.view.getContext());
+            builder.setMessage("You doesn't have reservation, please make one and go back!")
+                    .setCancelable(false)
+                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i("IoT","GoogleMaps/Gate Blocked, didn't have reservation");
+                            haveReservation = false;
+                            isOnCheckpoint = false;
+                        }
+                    });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
         }
+
     }
 
 

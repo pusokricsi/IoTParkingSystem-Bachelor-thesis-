@@ -62,6 +62,16 @@ public class DateCheck {
         this.cEndDate = cEndDate;
     }
 
+    public Date getpDate() {
+        Date date = null;
+        try {
+            date = dateFormat.parse(pDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return date;
+    }
+
     public boolean checkIsEmpty() {
         if (!cDate.isEmpty() && !cEndDate.isEmpty() && !cStartDate.isEmpty()) {
             Log.i("IoT", "DataCheck: Data field is ok!");
@@ -150,6 +160,16 @@ public class DateCheck {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public Date convertToDate(String date){
+        Date newDate = null;
+        try {
+            newDate = dateFormat.parse(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return newDate;
     }
 
 }

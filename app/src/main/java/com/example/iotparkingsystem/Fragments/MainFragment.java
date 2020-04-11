@@ -174,11 +174,11 @@ public class MainFragment extends Fragment{
             }
 
         }
-        Log.i("IoT","MainFragment: Position:"+pos1.toString()+pos2.toString()+pos3.toString()+pos4.toString());
         if (pos1==null || pos2==null || pos3==null || pos4==null || spotStatus==null){
             Log.i("IoT","MainFragment: Position is not correct!");
         }else {
             googleMap.createPolygon(pos1, pos2, pos3, pos4,spotName,spotStatus);
+            Log.i("IoT","MainFragment: Position:"+pos1.toString()+pos2.toString()+pos3.toString()+pos4.toString());
         }
     }
 

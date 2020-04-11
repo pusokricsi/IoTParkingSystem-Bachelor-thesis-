@@ -13,13 +13,17 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.iotparkingsystem.Adapters.SpotAdapter;
 import com.example.iotparkingsystem.Objects.DateCheck;
 import com.example.iotparkingsystem.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -34,6 +38,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -43,9 +48,14 @@ public class FreeSpotFragment extends DialogFragment {
     private String spotId;
     private View view;
     private EditText date, startTime, endTime;
+    private TextView currentDateTextView;
+    private String selectedDate;
     private Button reserveButton;
     private DateCheck dateCheck;
     private DatabaseReference mDatabaseReference;
+    private RecyclerView recyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
 
     public FreeSpotFragment(String spotId) {
         this.spotId = spotId;
@@ -83,6 +93,8 @@ public class FreeSpotFragment extends DialogFragment {
                 reserveButtonOnClick();
             }
         });
+
+
         return this.view;
     }
 
@@ -92,7 +104,9 @@ public class FreeSpotFragment extends DialogFragment {
         startTime = view.findViewById(R.id.startTimeEditText);
         endTime = view.findViewById(R.id.endTimeEditText);
         reserveButton = view.findViewById(R.id.reserveButton);
+        currentDateTextView = view.findViewById(R.id.currentDateTextView);
         dateCheck = new DateCheck("","","");
+
     }
 
     private void dateOnClick() {
@@ -106,7 +120,9 @@ public class FreeSpotFragment extends DialogFragment {
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 ++month;
                 date.setText(year+"/"+month+"/"+dayOfMonth);
+                selectedDate = year+"/"+month+"/"+dayOfMonth;
                 dateCheck.setcDate(year+"-"+month+"-"+dayOfMonth);
+                makeList();
             }
         },year,month,day);
         datePickerDialog.show();
@@ -194,6 +210,58 @@ public class FreeSpotFragment extends DialogFragment {
                     addNewReservation();
                     Toast.makeText(view.getContext(),"Reserved succesfully!",Toast.LENGTH_SHORT).show();
                 }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+
+
+    private void makeList(){
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference("IoTSystem");
+        Query query = mDatabaseReference.child("Reservations").orderByChild("spotId").equalTo(spotId);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                ArrayList<String> startTimeData = new ArrayList<>();
+                ArrayList<String> endTimeData = new ArrayList<>();
+                currentDateTextView.setText(selectedDate);
+                Date currentDate = dateCheck.convertToDate(dateCheck.getcDate());
+                for (DataSnapshot idChild:dataSnapshot.getChildren()){
+                    String startDate=null,endDate=null;
+                    Date startTempDate=null;
+
+                    for (DataSnapshot child:idChild.getChildren()){
+                        if (child.getKey().equals("startTime")){
+                            startDate = String.valueOf(child.getValue());
+                            Log.i("IoT","FreeSpotFragment: startTime "+startDate);
+                        }
+                        if (child.getKey().equals("endTime")){
+                            endDate = String.valueOf(child.getValue());
+                            Log.i("IoT","FreeSpotFragment: endTime "+endDate);
+                        }
+                        if (startDate!=null){
+                            startTempDate = dateCheck.convertToDate(startDate);
+                        }
+                    }
+                    if (startTempDate!=null & currentDate!=null){
+                        if (startTempDate.compareTo(currentDate)==0){
+                            int start = startDate.length()-5;
+                            startTimeData.add(startDate.substring(start));
+                            endTimeData.add(endDate.substring(start));
+                        }
+                    }
+
+                }
+                recyclerView = view.findViewById(R.id.recyclerView);
+                mLayoutManager = new LinearLayoutManager(view.getContext());
+                recyclerView.setLayoutManager(mLayoutManager);
+                mAdapter = new SpotAdapter(startTimeData,endTimeData);
+                recyclerView.setAdapter(mAdapter);
             }
 
             @Override
