@@ -48,7 +48,7 @@ public class FreeSpotFragment extends DialogFragment {
     private String spotId;
     private View view;
     private EditText date, startTime, endTime;
-    private TextView currentDateTextView;
+    private TextView currentDateTextView,spotName;
     private String selectedDate;
     private Button reserveButton;
     private DateCheck dateCheck;
@@ -66,6 +66,7 @@ public class FreeSpotFragment extends DialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         this.view = inflater.inflate(R.layout.fragment_free_spot,container,false);
         inicialize();
+        spotName.setText(spotId);
         date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,6 +101,7 @@ public class FreeSpotFragment extends DialogFragment {
 
 
     public void inicialize() {
+        spotName = view.findViewById(R.id.reserveTextView);
         date = view.findViewById(R.id.dateEditText);
         startTime = view.findViewById(R.id.startTimeEditText);
         endTime = view.findViewById(R.id.endTimeEditText);

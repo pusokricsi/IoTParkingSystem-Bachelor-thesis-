@@ -204,10 +204,10 @@ public class GoogleMaps implements OnMapReadyCallback {
                     return;
                 }
                 Location location = locationResult.getLastLocation();
-                mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),location.getLongitude())));
+                //mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),location.getLongitude())));
                 Log.i("IoT","Device location: "+location.getLongitude()+"  "+location.getLatitude());
                 if (!isOnCheckpoint) {
-                    checkIsDeviceInGateZone(new LatLng(location.getLatitude(), location.getLongitude()));
+                    //checkIsDeviceInGateZone(new LatLng(location.getLatitude(), location.getLongitude()));
                 }
 
 
