@@ -66,7 +66,7 @@ public class GoogleMaps implements OnMapReadyCallback {
 
 
     private final LatLng mDefaultLocation = new LatLng(46.52,24.6);
-    private static final int DEFAULT_ZOOM = 15;
+    private static final int DEFAULT_ZOOM = 20;
 
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -130,7 +130,7 @@ public class GoogleMaps implements OnMapReadyCallback {
         getLocation();
         addGatePolygon();
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(47.1624555,23.0539033), DEFAULT_ZOOM));
+                new LatLng(46.5232705,24.5980264), DEFAULT_ZOOM));
     }
 
     public void setCamera() {

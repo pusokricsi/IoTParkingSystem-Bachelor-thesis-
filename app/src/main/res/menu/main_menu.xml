@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/userName"
-        android:title="Item1"
-
-        />
+        android:id="@+id/profileItem"
+        android:title="Profile"/>
+    <item
+        android:id="@+id/reservationItem"
+        android:title="Your reservations"/>
+    <item
+        android:id="@+id/logoutItem"
+        android:title="LogOut"/>
 </menu>

@@ -5,4 +5,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="ifregister">"If you don't have account "</string>
     <string name="AcctionBarTitle">Sapientia Parking</string>
+    <string name="NameString">Name</string>
+    <string name="Email">Email</string>
+    <string name="LicencePlate">Licens Plate</string>
 </resources>

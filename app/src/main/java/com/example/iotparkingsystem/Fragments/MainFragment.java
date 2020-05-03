@@ -230,4 +230,19 @@ public class MainFragment extends Fragment{
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        googleMap.getmMap().clear();
+        super.onDestroy();
+    }
 }
