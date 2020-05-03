@@ -328,11 +328,100 @@ public class GoogleMaps implements OnMapReadyCallback {
 
 
 
+/*<Placemark>
+      <name>Spot1</name>
+      <styleUrl>#poly-000000-1200-77-nodesc</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              24.5981936,46.5228191,0
+                      24.5981989,46.5227858,0
+                      24.5982821,46.5227905,0
+                      24.5982767,46.5228246,0
+                      24.5981936,46.5228191,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Spot2</name>
+      <styleUrl>#poly-000000-1200-77-nodesc</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              24.5982821,46.5227905,0
+                      24.5981989,46.5227858,0
+                      24.5982033,46.522755,0
+                      24.5982874,46.5227591,0
+                      24.5982821,46.5227905,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Spot3</name>
+      <styleUrl>#poly-000000-1200-77-nodesc</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              24.5980829,46.5227729,0
+                      24.5980869,46.5227416,0
+                      24.5981607,46.5227462,0
+                      24.5981553,46.5227775,0
+                      24.5980829,46.5227729,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Spot4</name>
+      <styleUrl>#poly-000000-1200-77-nodesc</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              24.598221,46.5226825,0
+                      24.5982223,46.5226502,0
+                      24.5983028,46.522653,0
+                      24.5982988,46.5226871,0
+                      24.598221,46.5226825,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>GateZone</name>
+      <styleUrl>#poly-000000-1200-77-nodesc</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              24.5980264,46.5232705,0
+                      24.5980372,46.5231644,0
+                      24.5981941,46.5231764,0
+                      24.5981766,46.5232844,0
+                      24.5980264,46.5232705,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
 
 
 
-
-
+*/
 
 
 
