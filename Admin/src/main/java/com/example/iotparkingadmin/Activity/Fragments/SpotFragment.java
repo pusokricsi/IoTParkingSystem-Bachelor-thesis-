@@ -41,7 +41,7 @@ public class SpotFragment extends DialogFragment {
 
 
     public void inicialize() {
-
+        spotName = view.findViewById(R.id.reserveTextView);
     }
 
 

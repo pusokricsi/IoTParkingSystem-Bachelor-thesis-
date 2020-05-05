@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Bundle;
+import android.view.View;
 
 import com.example.iotparkingadmin.Activity.Fragments.MainFragment;
 import com.example.iotparkingadmin.R;
@@ -34,6 +35,10 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.add(R.id.fragmentContainer,fragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
+    }
+
+    public void getClickedButton(View v){
+        mainFragment.getClickedButton(v);
     }
 
 }

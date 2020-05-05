@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 
 
+import com.example.iotparkingadmin.Activity.Fragments.SpotFragment;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -46,7 +47,7 @@ public class GoogleMaps implements OnMapReadyCallback {
     private android.view.View view;
     private SupportMapFragment supportMapFragment;
     private FragmentManager fragmentManager;
-    //private FreeSpotFragment freeSpotFragment;
+    private SpotFragment spotFragment;
     private Polygon polygon;
     private DatabaseReference mDatabaseReference;
     private FirebaseAuth mFirebaseAuth;
@@ -114,8 +115,8 @@ public class GoogleMaps implements OnMapReadyCallback {
                 Log.i("IoT","GoogleMaps: "+polygon.getTag());
                 //polygon.setFillColor(Color.BLUE);
                 fragmentManager = ((AppCompatActivity)view.getContext()).getSupportFragmentManager();
-                //freeSpotFragment = new FreeSpotFragment(String.valueOf(polygon.getTag()));
-                //freeSpotFragment.show(fragmentManager,"fragment_free_spot");
+                spotFragment = new SpotFragment(String.valueOf(polygon.getTag()));
+                spotFragment.show(fragmentManager,"fragment_free_spot");
             }
         });
         getLocationPermission();
