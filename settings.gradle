@@ -1,2 +1,2 @@
-include ':app'
+include ':app', ':Admin'
 rootProject.name='IoTParkingSystem'
